@@ -1,4 +1,5 @@
 local pad_img = GAMESTATE:GetCurrentGame():GetName()
+local bassInParallel = PREFSMAN:GetPreference("LightsBassParallel")
 local isSolo = false
 if pad_img == "dance" and ThemePrefs.Get("AllowDanceSolo") then
 	local style = GAMESTATE:GetCurrentStyle()
@@ -11,13 +12,16 @@ end
 
 local CabinetHighlights = {
 	MarqueeUpLeft=	{    x=-278, y=-587, rotationz=0, zoom=0.6, graphic="red.png" },
-	MarqueeUpRight=	{    x=278,   y=-587, rotationz=0, zoom=0.6, graphic="red.png" },
-	MarqueeLrLeft=	{    x=-278,  y=-409, rotationz=0, zoom=0.5, graphic="white.png" },
-	MarqueeLrRight=	{    x=278, y=-409,  rotationz=0, zoom=0.5, graphic="white.png" },
-	BassLeft=		{    x=-230,   y=433,  rotationz=0, zoom=0.5, graphic="bass light (pink).png" },
-	BassRight=		{    x=230,  y=433,  rotationz=0, zoom=0.5, graphic="bass light (pink).png" }
+	MarqueeUpRight=	{    x=278,   y=-587, rotationz=0, zoom=0.6, graphic="blue.png" },
+	MarqueeLrLeft=	{    x=-278,  y=-409, rotationz=0, zoom=0.6, graphic="white.png" },
+	MarqueeLrRight=	{    x=278, y=-409,  rotationz=0, zoom=0.6, graphic="pink.png" },
+	BassLeft=		{    x=-230,   y=433,  rotationz=0, zoom=0.6, graphic="bass light (blue).png" },
+	BassRight=		{    x=230,  y=433,  rotationz=0, zoom=0.6, graphic="bass light (blue).png" }
 }
-
+local parallelBass= {
+	BassLeft="BassRight",
+	BassRight="BassLeft"
+}
 local GameButtonHighlights = {
 	-- Start={     x=0,   y=0, rotationz=0,   zoom=0.5, graphic="green.png" },
 	-- Select={    x=0,   y=0, rotationz=0, zoom=0.5, graphic="red.png" },
@@ -49,12 +53,21 @@ local cabinet = Def.ActorFrame{
 		end
 
 		if self.lastOn ~= nil then
-			self.lastOn:queuecommand("TurnOff")
+			self:GetChild(self.lastOn):queuecommand("TurnOff")
+
+			if bassInParallel and string.find(self.lastOn, "Bass") then
+				self:GetChild(parallelBass[self.lastOn]):queuecommand("TurnOff")
+			end
 			self.lastOn = nil
 		end
 
 		self:GetChild(params.CabinetLightId):queuecommand("TurnOn")
-		self.lastOn = self:GetChild(params.CabinetLightId)
+
+		if bassInParallel and string.find(params.CabinetLightId, "Bass") then
+				self:GetChild(parallelBass[params.CabinetLightId]):queuecommand("TurnOn")
+		end
+
+		self.lastOn = params.CabinetLightId
 	end
 }
 
