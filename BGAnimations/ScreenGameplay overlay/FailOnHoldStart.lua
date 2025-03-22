@@ -21,9 +21,10 @@ local af = Def.ActorFrame{
 		-- would be helpful here.
 		local stage_stats = STATSMAN:GetCurStageStats()
 		local fail = false
+
 		if stage_stats.GaveUp then
-			fail = stage_stats:GaveUp()
-		else
+            fail = stage_stats:GaveUp() and (not ThemePrefs.Get("ContinueOnGiveUp"))
+        else
 			fail = (GAMESTATE:GetCurMusicSeconds() < GAMESTATE:GetCurrentSong():GetLastSecond())
 		end
 
