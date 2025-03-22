@@ -40,7 +40,7 @@ af2[#af2+1] = LoadActor("./Logo.lua")
 --    stepmania_version
 --    num_songs in num_groups, num_courses
 af2[#af2+1] = LoadActor("./UserContentText.lua")
-
+af2[#af2+1] = LoadActor("./SongsPerPlayContentText.lua")
 -- "The chills, I have them down my spine."
 if IsSpooky() then
 	af2[#af2+1] = LoadActor("./SpookyButFadeOut.lua")
