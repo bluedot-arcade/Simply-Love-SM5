@@ -340,12 +340,12 @@ local wheel_options = {
 	{ {"SortBy", "Recent"} },
 	-- Allow players to switch out to a different SL GameMode if no stages have been played yet,
 	-- but don't add the current SL GameMode as a choice.
-	{ {"ChangeMode", "ITG"}, SL.Global.Stages.PlayedThisGame == 0 and SL.Global.GameMode ~= "ITG" },
+	{ {"ChangeMode", "ITG"}, SL.Global.Stages.PlayedThisGame == 0 and SL.Global.GameMode ~= "ITG" and ThemePrefs.Get("AllowScreenSelectPlayMode") },
 	-- Casual players often choose the wrong mode and an experienced player in the area may notice this
 	-- and offer to switch them back to casual mode. This allows them to do so again.
 	-- It's technically not possible to reach the sort menu in Casual Mode, but juuust in case let's still
 	-- include the check.
-	{ {"ChangeMode", "Casual"}, SL.Global.Stages.PlayedThisGame == 0 and SL.Global.GameMode ~= "Casual" },
+	{ {"ChangeMode", "Casual"}, SL.Global.Stages.PlayedThisGame == 0 and SL.Global.GameMode ~= "Casual" and ThemePrefs.Get("AllowScreenSelectPlayMode")},
 	{ {"ImLovinIt", "AddFavorite"}, function() return GAMESTATE:GetCurrentSong() ~= nil end},
 	AddFavorites(),
 	{ {"GrooveStats", "Leaderboard"}, function() return GAMESTATE:GetCurrentSong() ~= nil end },	

@@ -42,14 +42,19 @@ af[#af+1] = Def.Sprite{
 			else
 				self:Load(image)
 			end
-			self:zoom(0.7):vertalign(top)
+            if(style == "ITG") then
+                self:zoom(0.85):vertalign(top)
+            else
+                self:zoom(0.7):vertalign(top)
+            end
+                
 			self:y(-102):shadowlength(0.75)
 		end
 	end,
 }
 
 
-if ThemePrefs.Get("VisualStyle") ~= "SRPG9" then
+if ThemePrefs.Get("VisualStyle") ~= "SRPG9" and ThemePrefs.Get("VisualStyle") ~= "ITG" then
 	-- decorative arrows for current game (dance, pump, techno, etc.)
 	af[#af+1] = LoadActor(resolved_path)..{
 		InitCommand=function(self)
@@ -76,7 +81,7 @@ if ThemePrefs.Get("VisualStyle") ~= "SRPG9" then
 		VisualStyleSelectedMessageCommand=function(self)
 			-- In case we auto-switch to SRPG9, then it's possible this actor may have been added to the screen.
 			-- If so, we want to hide the logo as it interferes with the SRPG9 logo.
-			if ThemePrefs.Get("VisualStyle") == "SRPG9" then
+			if ThemePrefs.Get("VisualStyle") == "SRPG9" or ThemePrefs.Get("VisualStyle") == "ITG" then
 				self:visible(false)
 			end
 		end
