@@ -6,7 +6,7 @@ local totalSongs = profile:GetNumTotalSongsPlayed()
 
 local lines = {
 	playerName,
-	ScreenString("CaloriesBurned") .. "\n" .. calories,
+	"Pizzas" .. "\n",
 	ScreenString("TotalSongsPlayed") .. "\n"..totalSongs,
 }
 
