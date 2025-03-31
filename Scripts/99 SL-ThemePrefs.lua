@@ -37,7 +37,7 @@ SL_CustomPrefs.Get = function()
 		end
 	end
 
-	return {
+	return BsysThemePrefs.AddTo {
 		HideStockNoteSkins =
 		{
 			Default = false,
