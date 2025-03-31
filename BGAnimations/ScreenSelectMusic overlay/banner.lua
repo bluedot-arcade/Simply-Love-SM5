@@ -80,7 +80,7 @@ if not GAMESTATE:IsCourseMode() then
 		SwitchFocusToGroupsMessageCommand=function(self) self:GetChild("CdTitle"):visible(false) end,
 		SetCDCommand=function(self)
 			SongOrCourse = GAMESTATE:IsCourseMode() and GAMESTATE:GetCurrentCourse() or GAMESTATE:GetCurrentSong()
-			if SongOrCourse and SongOrCourse:HasCDTitle() then
+			if SongOrCourse and SongOrCourse:HasCDTitle() and ThemePrefs.Get("HideCdTitles") then
 				self:visible(true)
 				self:Load( GAMESTATE:GetCurrentSong():GetCDTitlePath() )
 				local dim1, dim2 = math.max(self:GetWidth(), self:GetHeight()), math.min(self:GetWidth(), self:GetHeight())

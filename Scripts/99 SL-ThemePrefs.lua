@@ -37,19 +37,7 @@ SL_CustomPrefs.Get = function()
 		end
 	end
 
-	return {
-		AllowFailingOutOfSet =
-		{
-			Default = true,
-			Choices = { THEME:GetString("ThemePrefs","Yes"), THEME:GetString("ThemePrefs", "No") },
-			Values  = { true, false }
-		},
-		NumberOfContinuesAllowed =
-		{
-			Default = 0,
-			Choices = { 0,1,2,3,4,5,6,7,8,9 },
-			Values  = { 0,1,2,3,4,5,6,7,8,9 }
-		},
+	return BsysThemePrefs.AddTo {
 		HideStockNoteSkins =
 		{
 			Default = false,

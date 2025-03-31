@@ -87,7 +87,7 @@ end
 return LoadFont("Common Normal")..{
 	Text=GetText(),
 	InitCommand=function(self)
-		self:zoom(0.8):y(-150):diffusealpha(0)
+		self:zoom(0.8):y(-150):diffusealpha(0):visible(ThemePrefs.Get("ShowBuild"))
 		self:playcommand("UpdateColor")
 	end,
 	OnCommand=function(self) self:sleep(0.2):linear(0.4):diffusealpha(1) end,
