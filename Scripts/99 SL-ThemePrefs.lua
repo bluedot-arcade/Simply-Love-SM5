@@ -56,6 +56,12 @@ SL_CustomPrefs.Get = function()
 			Choices = { THEME:GetString("ThemePrefs","Yes"), THEME:GetString("ThemePrefs", "No") },
 			Values  = { true, false }
 		},
+		ShowBuild =
+		{
+			Default = false,
+			Choices = { THEME:GetString("ThemePrefs","Yes"), THEME:GetString("ThemePrefs", "No") },
+			Values  = { true, false }
+		},
 		HideStockNoteSkins =
 		{
 			Default = false,
