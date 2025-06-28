@@ -68,6 +68,11 @@ SL_CustomPrefs.Get = function()
 			Choices = { THEME:GetString("ThemePrefs", "Show"), THEME:GetString("ThemePrefs", "Hide") },
 			Values  = { false, true }
 		},
+		HideCdTitles = {
+			Default = true,
+			Choices = {THEME:GetString("ThemePrefs", "Show"), THEME:GetString("ThemePrefs", "Hide") },
+			Values = {true, false}
+		},
 		MusicWheelStyle =
 		{
 			Default = "ITG",
