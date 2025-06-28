@@ -15,6 +15,8 @@ return Def.ActorFrame{
 	-- letter grade
 	LoadActor("./LetterGrade.lua", player),
 
+	LoadActor("./SyncStartUpdateFinalScore.lua", player),
+
 	-- nice
 	LoadActor("./nice.lua", player),
 
