@@ -97,6 +97,15 @@ local input = function(event)
 					overlay:GetChild("PaneDisplayMaster"):GetChild("GetScoresRequester"):playcommand("Cancel")
 					overlay:playcommand("DirectInputToEngine")
 					SCREENMAN:SetNewScreen("ScreenReloadSongsSSM")
+
+				elseif focus.new_overlay == "SyncStart" then
+					if SYNCMAN:IsEnabled() then
+						SYNCMAN:Disable()
+					else
+						SYNCMAN:Enable()
+					end
+					overlay:queuecommand("DirectInputToEngine")
+
 				elseif focus.new_overlay == "ViewDownloads" then
 					-- Make sure we cancel the request if it's active before trying to switch screens.
 					-- This prevents the "Stale ActorFrame" error.

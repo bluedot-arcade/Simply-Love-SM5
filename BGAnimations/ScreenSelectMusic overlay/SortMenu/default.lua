@@ -322,6 +322,7 @@ local wheel_options = {
 			{ {"NeedMoreRam", "ViewDownloads"}, DownloadsExist },
 			{ {"WhereforeArtThou", "SongSearch"}, not GAMESTATE:IsCourseMode() and ThemePrefs.Get("KeyboardFeatures") },
 			{ {"NextPlease", "SwitchProfile"}, ThemePrefs.Get("AllowScreenSelectProfile") },
+			{ {"playTogether", "SyncStart"} },
 			{ {"SetSummaryText", "SetSummary"}, SL.Global.Stages.PlayedThisGame > 0 },
 		}
 	},
