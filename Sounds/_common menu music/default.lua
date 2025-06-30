@@ -10,7 +10,8 @@ local songs = {
 	Thonk  = "Da Box of Kardboard Too (feat Naoki vs ZigZag) - TaroNuke Remix",
 	Technique = "Quaq",
 	SRPG9  = "SRPG9",
-	ITG = "Martin Cento Remix"
+	ITG = "Martin Cento Remix",
+	Eurocup = "Beat Keep Rockin"
 }
 
 -- retrieve the current VisualStyle from the ThemePrefs system

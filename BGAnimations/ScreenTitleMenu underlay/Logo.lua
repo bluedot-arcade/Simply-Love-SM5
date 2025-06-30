@@ -42,7 +42,7 @@ af[#af+1] = Def.Sprite{
 			else
 				self:Load(image)
 			end
-            if(style == "ITG") then
+            if style == "ITG" or style == "Eurocup" then
                 self:zoom(0.85):vertalign(top)
             else
                 self:zoom(0.7):vertalign(top)
@@ -58,8 +58,11 @@ if ThemePrefs.Get("VisualStyle") ~= "SRPG9" and ThemePrefs.Get("VisualStyle") ~=
 	-- decorative arrows for current game (dance, pump, techno, etc.)
 	af[#af+1] = LoadActor(resolved_path)..{
 		InitCommand=function(self)
-			self:y(-16)
-
+			if ThemePrefs.Get("VisualStyle") == "Eurocup" then
+				self:y(80)
+			else
+				self:y(-16)
+			end
 			-- use ActorUtil to resolve the path and find out if it's a png or a directory
 			-- if it's a png, scale it
 			-- if it's a directory, assume the default.lua returns an AF and handles its own scaling
