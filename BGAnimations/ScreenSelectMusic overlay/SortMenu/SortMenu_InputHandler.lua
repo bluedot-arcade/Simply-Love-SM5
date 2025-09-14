@@ -146,6 +146,9 @@ local input = function(event)
 				elseif focus.new_overlay == "SetSummary" then
 					SCREENMAN:GetTopScreen():SetNextScreenName("ScreenEvaluationSummarySet")
 					SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
+				elseif focus.new_overlay == "SetDefaultSong" then
+					PREFSMAN:SetPreference("DefaultSong", GAMESTATE:GetCurrentSong():GetSongDir())
+					overlay:queuecommand("DirectInputToEngine")
 				end
 			end
 
