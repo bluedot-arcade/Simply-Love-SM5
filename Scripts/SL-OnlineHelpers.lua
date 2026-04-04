@@ -162,12 +162,15 @@ local GetMachineState = function(params)
       local judgments = nil
       local score = nil
       local exScore = nil
+	  local isFailed = nil
       if screenName == Branch.GameplayScreen() or screenName == "ScreenEvaluationStage" then
-        judgments = GetJudgmentCounts(player)
-        local dance_points = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPercentDancePoints()
+        local stats = STATSMAN:GetCurStageStats():GetPlayerStageStats(player)
+		judgments = GetJudgmentCounts(player)
+        local dance_points = stats:GetPercentDancePoints()
         local percent = FormatPercentScore( dance_points ):gsub("%%", "")
         score = tonumber(percent)
         exScore = CalculateExScore(player)
+		isFailed = stats:GetFailed()
       end
 
       local pn = ToEnumShortString(player)
@@ -180,6 +183,7 @@ local GetMachineState = function(params)
         judgments = judgments,
         score = score,
         exScore = exScore,
+		isFailed = isFailed,
         -- TODO(teejusb): Add song progression.
       }
     end
