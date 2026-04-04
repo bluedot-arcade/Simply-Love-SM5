@@ -16,6 +16,11 @@ local function Get()
 			Choices = {THEME:GetString("ThemePrefs", "Show"), THEME:GetString("ThemePrefs", "Hide") },
 			Values = {true, false}
 		},
+		LobbyUpdateInterval = {
+			Default = 100,
+			Choices = { "0 ms", "50 ms", "100 ms", "250 ms", "500 ms", "1000 ms" },
+			Values  = { 0, 50, 100, 250, 500, 1000 }
+		},
 	}
 end
 

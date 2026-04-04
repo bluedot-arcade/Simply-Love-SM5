@@ -19,6 +19,8 @@
 local af = Def.ActorFrame{}
 
 af[#af+1] = LoadActor("./WhoIsCurrentlyWinning.lua")
+-- drawn here rather than in the underlay so it covers the notefield
+af[#af+1] = LoadActor("./LobbyReadyBox.lua")
 
 for player in ivalues( GAMESTATE:GetHumanPlayers() ) do
 
