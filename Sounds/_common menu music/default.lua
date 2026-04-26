@@ -11,7 +11,8 @@ local songs = {
 	Technique = "Quaq",
 	SRPG9  = "SRPG9",
 	ITG = "Martin Cento Remix",
-	Eurocup = "Beat Keep Rockin"
+	Eurocup = "Beat Keep Rockin",
+	KING = "the doom"
 }
 
 -- retrieve the current VisualStyle from the ThemePrefs system

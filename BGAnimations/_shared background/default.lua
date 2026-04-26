@@ -33,5 +33,6 @@ af[#af+1] = LoadActor("./Static.lua", file)
 af[#af+1] = LoadActor("./Technique.lua", file)
 af[#af+1] = LoadActor("./ITG.lua", file)
 af[#af+1] = LoadActor("./Eurocup.lua", file)
+af[#af+1] = LoadActor("./King.lua", file)
 
 return af
