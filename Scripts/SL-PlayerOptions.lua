@@ -633,7 +633,7 @@ local Overrides = {
 	},
 	-------------------------------------------------------------------------
 	ErrorBar = {
-		Values = { "None", "Colorful", "Monochrome", "Text" },
+		Values = { "None", "Colorful", "Monochrome", "Text", "Average" },
 		ExportOnChange = true,
 		SaveSelections = function(self, list, pn)
 			for i, value in ipairs(self.Values) do
