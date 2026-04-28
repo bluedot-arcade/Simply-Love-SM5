@@ -19,6 +19,13 @@ SL_CustomPrefs.Get = function()
 	local visualStyleChoices = { "❤", "↖", "🐻", "🦆", "😺", "🎃", "🌈", "⭐", "🤔", "🌀", "ITG" }
 	local visualStyleValues  = { "Hearts", "Arrows", "Bears", "Ducks", "Cats", "Spooky", "Gay", "Stars", "Thonk", "Technique", "ITG" }
 
+	local premiumFreeMinuteChoices = {}
+	local premiumFreeMinuteValues = {}
+	for minutes = 5, 120 do
+		premiumFreeMinuteChoices[#premiumFreeMinuteChoices+1] = tostring(minutes)
+		premiumFreeMinuteValues[#premiumFreeMinuteValues+1] = minutes
+	end
+
 	local year = Year()
 	local month = MonthOfYear()+1
 	local day = DayOfMonth()
@@ -98,6 +105,18 @@ SL_CustomPrefs.Get = function()
 				THEME:GetString("ScreenSelectPlayMode", "ITG"),
 			},
 			Values = { "Casual", "ITG" }
+		},
+		PremiumFreeAvailable =
+		{
+			Default = false,
+			Choices = { THEME:GetString("ThemePrefs","Yes"), THEME:GetString("ThemePrefs", "No") },
+			Values = { true, false }
+		},
+		PremiumFreeMinutes =
+		{
+			Default = 10,
+			Choices = premiumFreeMinuteChoices,
+			Values = premiumFreeMinuteValues
 		},
 		DefaultSort =
 		{

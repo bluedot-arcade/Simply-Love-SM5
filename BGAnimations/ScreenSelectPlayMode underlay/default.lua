@@ -38,11 +38,15 @@ local InputHandler = function(event)
 		if event.GameButton == "Start" then
 			if ScreenName=="ScreenSelectPlayMode" or ScreenName=="ScreenSelectPlayModeThonk" then
 				SL.Global.GameMode = choices[cursor.index+1]
+				GAMESTATE:SetPremiumFreeActive(false, 0)
 				-- now that a GameMode has been selected, set related preferences
 				SetGameModePreferences()
 				-- and reload the theme's Metrics
 				THEME:ReloadMetrics()
 				SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
+			elseif ScreenName=="ScreenSelectPlayMode2" then
+				local premiumFreeSelected = (choices[cursor.index+1] == "PremiumFree")
+				GAMESTATE:SetPremiumFreeActive(premiumFreeSelected, PremiumFreeMinutes())
 			end
 		end
 	end

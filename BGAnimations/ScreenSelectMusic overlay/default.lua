@@ -5,12 +5,29 @@ local af = Def.ActorFrame{
 	-- time ScreenGameplay loads, it should have a properly animated entrance.
 	InitCommand=function(self)
 		SL.Global.GameplayReloadCheck = false
+		self:queuecommand("CheckPremiumFreeSongs")
 		generateFavoritesForMusicWheel()
 		-- While other SM versions don't need this, Outfox resets the
 		-- the music rate to 1 between songs, but we want to be using
 		-- the preselected music rate.
 		local songOptions = GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred")
 		songOptions:MusicRate(SL.Global.ActiveModifiers.MusicRate)
+	end,
+
+	CheckPremiumFreeSongsCommand=function(self)
+		local screen = SCREENMAN:GetTopScreen()
+		local wheel = screen and screen:GetMusicWheel()
+
+		if not wheel then
+			self:queuecommand("CheckPremiumFreeSongs")
+			return
+		end
+
+		if PremiumFreeActive() and not wheel:HasSongs() then
+			PremiumFreeReset()
+			screen:SetNextScreenName(Branch.AllowScreenEvalSummary())
+			screen:StartTransitioningScreen("SM_GoToNextScreen")
+		end
 	end,
 
 	PlayerProfileSetMessageCommand=function(self, params)

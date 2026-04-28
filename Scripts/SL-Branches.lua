@@ -257,7 +257,15 @@ Branch.AfterProfileSave = function()
 
 	if PREFSMAN:GetPreference("EventMode") then
 		return SelectMusicOrCourse()
+	
+	elseif PremiumFreeActive() then
+		if PremiumFreeExpired() then
+			PremiumFreeReset()
+			return Branch.AllowScreenEvalSummary()
+		end
 
+		return SelectMusicOrCourse()
+		
 	elseif GAMESTATE:IsCourseMode() then
 		return Branch.AllowScreenNameEntry()
 
