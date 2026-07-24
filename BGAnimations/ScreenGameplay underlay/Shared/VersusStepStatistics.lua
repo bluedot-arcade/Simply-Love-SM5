@@ -5,7 +5,7 @@ local FilterAlpha = BackgroundFilterValues()
 local ShouldDisplayStatsForPlayer = function(player)
     local pn = ToEnumShortString(player)
     return (SL[pn].ActiveModifiers.DataVisualizations == "Step Statistics" or
-            ThemePrefs.Get("EnableTournamentMode") and ThemePrefs.Get("StepStats") == "Show")
+            ThemePrefs.Get("EnableTournamentMode") and ThemePrefs.Get("StepStats") == "Show" and not SYNCMAN:IsEnabled())
 end
 
 local ShouldDisplayStats = function()
