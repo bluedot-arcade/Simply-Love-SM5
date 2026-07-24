@@ -435,6 +435,7 @@ local t = Def.ActorFrame {
 					-- which could delete the currently selected course.
 					{ {"TakeABreather", "LoadNewSongs"}, not GAMESTATE:IsCourseMode() },
 					{ {"NeedMoreRam", "ViewDownloads"}, DownloadsExist },
+					{ {"playTogether", "SyncStart"}, not SYNCMAN },
 					{ {"SetSummaryText", "SetSummary"}, SL.Global.Stages.PlayedThisGame > 0 },
 					{ {"BottomText", "OnlineLobbies"}, ThemePrefs.Get("EnableOnlineLobbies") and GAMESTATE:IsEventMode() and not GAMESTATE:IsCourseMode() },
 				}
