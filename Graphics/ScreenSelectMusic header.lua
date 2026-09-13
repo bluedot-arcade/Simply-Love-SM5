@@ -96,10 +96,18 @@ else
 
 end
 
--- "ITG" aligned to right of screen
+local GameModeText = function()
+	local lobby = GetLobbyState()
+	if lobby.inLobby and lobby.code then
+		return lobby.code
+	end
+	return THEME:GetString("ScreenSelectPlayMode", PremiumFreeActive() and "PremiumFree" or SL.Global.GameMode)
+end
+
+-- "ITG" (or the lobby code) aligned to right of screen
 af[#af+1] = LoadFont("Common Header")..{
 	Name="GameModeText",
-	Text=THEME:GetString("ScreenSelectPlayMode", PremiumFreeActive() and "PremiumFree" or SL.Global.GameMode),
+	Text=GameModeText(),
 	InitCommand=function(self)
 		self:diffusealpha(0):halign(1):y(15)
 		self:zoom( SL_WideScale(0.5, 0.6) )
@@ -115,7 +123,10 @@ af[#af+1] = LoadFont("Common Header")..{
 		self:sleep(0.1):decelerate(0.33):diffusealpha(1)
 	end,
 	SLGameModeChangedMessageCommand=function(self)
-		self:settext(THEME:GetString("ScreenSelectPlayMode", PremiumFreeActive() and "PremiumFree" or SL.Global.GameMode))
+		self:settext(GameModeText())
+	end,
+	LobbyStatusChangedMessageCommand=function(self)
+		self:settext(GameModeText())
 	end
 }
 
