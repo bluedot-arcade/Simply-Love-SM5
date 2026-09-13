@@ -92,6 +92,7 @@ local af = Def.ActorFrame{
 	LoadActor("./SongDescription/SongDescription.lua"),
 	-- Banner Art
 	LoadActor("./Banner.lua"),
+	LoadActor("./LobbyRoster.lua"),
 
 	-- ---------------------------------------------------
 	-- finally, load the overlay used for sorting the MusicWheel (and more), hidden by default

@@ -92,5 +92,6 @@ end
 -- add to the ActorFrame last; overlapped by StepStatistics otherwise
 t[#t+1] = LoadActor("./Shared/BPMDisplay.lua")
 t[#t+1] = LoadActor("./Shared/SyncStartScores.lua")
+t[#t+1] = LoadActor("./Shared/LobbyScores.lua")
 
 return t
