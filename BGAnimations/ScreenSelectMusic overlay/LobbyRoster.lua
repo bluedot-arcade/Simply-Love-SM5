@@ -39,7 +39,7 @@ local af = Def.ActorFrame{
 		self:visible(lobby.inLobby)
 		if not lobby.inLobby then return end
 
-		self:GetChild("Title"):settext("Lobby " .. (lobby.code or ""))
+		self:GetChild("Title"):settext(("Lobby %s   Cabinet %s"):format(lobby.code or "", GetCabinetId()))
 
 		for i = 1, MAX_PLAYERS do
 			local player = lobby.players[i]
@@ -48,7 +48,9 @@ local af = Def.ActorFrame{
 		end
 
 		local status = ""
-		if lobby.waiting then
+		if IsParkedCabinet() then
+			status = "No player is on this cabinet's pads"
+		elseif lobby.waiting then
 			status = "Waiting for players to sync screens..."
 		elseif lobby.songInfo ~= nil then
 			status = "Song: " .. (lobby.songInfo.title or lobby.songInfo.songPath)

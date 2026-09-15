@@ -27,3 +27,11 @@ return t
 ```
 
 In the above example, we will simply SystemMessage a string once we load `ScreenSelectMusic` and `ScreenGameplay` respectively.
+
+## Lobby Modules
+A module can act on commands a lobby controller sends to this cabinet, and add fields to the players this cabinet reports to the lobby, without editing `Scripts/SL-OnlineHelpers.lua`. Both registries are keyed by name, so reloading the theme replaces an entry rather than duplicating it.
+
+- `RegisterLobbyCommand(command, handler)` runs `handler(payload)` for every `machineCommand` named `command`. Machines never answer a command. A command without a handler is ignored, and an error in a handler is reported without breaking the connection.
+- `RegisterLobbyPlayerFields(name, provider)` calls `provider(player, screenName)` for every joined player each time the machine state is sent, and adds the fields of the table it returns to that player. It never replaces a field the theme itself sends. Providers run on every send, including throttled sends during gameplay, so they must be cheap.
+
+A lobby module may also rely on `GetLobbyState()` and the `Lobby*Changed` messages, `GetCabinetId()`, `IsPlaceholderSide(player)` and `IsParkedCabinet()`, and on broadcasting `UpdateMachineState` to send the machine state at once.

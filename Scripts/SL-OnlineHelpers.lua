@@ -13,6 +13,9 @@
 --
 -- The LobbyUpdateInterval theme pref limits how often machine state is sent
 -- during gameplay and how often lobby state is processed; 0 handles every one.
+--
+-- Theme modules extend the lobby through RegisterLobbyCommand and
+-- RegisterLobbyPlayerFields; see Modules/README.md.
 -- -----------------------------------------------------------------------
 
 local host = "syncservice.groovestats.com"
@@ -23,7 +26,7 @@ local readyState = {
   ["P1"] = true,
   ["P2"] = true
 }
-local songSelected = false
+local selectedSongPath = nil
 -- Track Start button hold time for disconnect
 local startHoldTime = {
   ["P1"] = 0,
@@ -86,6 +89,11 @@ end
 local LocalProfileName = function(player)
   if PROFILEMAN:IsPersistentProfile(player) and PROFILEMAN:GetProfile(player) then
     return PROFILEMAN:GetProfile(player):GetDisplayName()
+  end
+  -- A guest keeps a name a module gave it.
+  local guest = PROFILEMAN:GetProfile(player)
+  if guest and guest:GetDisplayName() ~= "" then
+    return guest:GetDisplayName()
   end
   return "NoName"
 end
@@ -268,7 +276,12 @@ GetLobbyEntryForPlayer = function(player)
 end
 
 IsLobbyLocalOnly = function()
-  local humanPlayers = GAMESTATE:GetHumanPlayers()
+  local humanPlayers = {}
+  for player in ivalues(GAMESTATE:GetHumanPlayers()) do
+    if not IsPlaceholderSide(player) then
+      humanPlayers[#humanPlayers+1] = player
+    end
+  end
   if #lobby.players == 0 or #lobby.players ~= #humanPlayers then
     return false
   end
@@ -334,26 +347,32 @@ end
 
 local SelectLobbySong = function()
   local songInfo = lobby.songInfo
-  if songInfo ~= nil and not songSelected then
-    local topScreen = SCREENMAN:GetTopScreen()
-    if topScreen and topScreen:GetName() == "ScreenSelectMusic" then
-      local song = SONGMAN:FindSong(songInfo.songPath)
-      local songFolder = songInfo.songPath:split("/")[2]
-      if not song and songFolder then
-        song = SONGMAN:FindSong(songFolder)
-      end
-      local wheel = topScreen:GetMusicWheel()
-      if song and wheel then
-        wheel:SelectSong(song)
-        wheel:Move(1)
-        wheel:Move(-1)
-        wheel:Move(0)
-      end
+  if songInfo == nil then
+    -- The server clears the song when every player has arrived back at song selection.
+    selectedSongPath = nil
+    return
+  end
+  -- Each selected song is followed once; a parked cabinet follows none.
+  if songInfo.songPath == selectedSongPath or IsParkedCabinet() then
+    return
+  end
+  selectedSongPath = songInfo.songPath
+
+  local topScreen = SCREENMAN:GetTopScreen()
+  if topScreen and topScreen:GetName() == "ScreenSelectMusic" then
+    local song = SONGMAN:FindSong(songInfo.songPath)
+    local songFolder = songInfo.songPath:split("/")[2]
+    if not song and songFolder then
+      song = SONGMAN:FindSong(songFolder)
+    end
+    local wheel = topScreen:GetMusicWheel()
+    if song and wheel then
+      wheel:SelectSong(song)
+      wheel:Move(1)
+      wheel:Move(-1)
+      wheel:Move(0)
     end
   end
-
-  -- This gets cleared out by the server when every player has arrived at the song selection screen.
-  songSelected = (songInfo ~= nil)
 end
 
 -- -----------------------------------------------------------------------
@@ -415,6 +434,37 @@ local CreateThrottle = function(work)
 end
 
 -- -----------------------------------------------------------------------
+-- Module registries
+--
+-- Modules register when ScreenSystemLayer loads them, after every file in
+-- Scripts/. Keying by name makes a theme reload replace an entry.
+
+local lobbyCommands = {}
+local lobbyPlayerFields = {}
+
+RegisterLobbyCommand = function(command, handler)
+  lobbyCommands[command] = handler
+end
+
+RegisterLobbyPlayerFields = function(name, provider)
+  lobbyPlayerFields[name] = provider
+end
+
+local RunLobbyCommand = function(data)
+  local command = type(data) == "table" and data.command or nil
+  local handler = command and lobbyCommands[command]
+  if handler == nil then
+    Trace("[Lobby] No module handles the machine command " .. tostring(command))
+    return
+  end
+
+  local ok, err = pcall(handler, type(data.payload) == "table" and data.payload or {})
+  if not ok then
+    lua.ReportScriptError("[Lobby] Machine command " .. command .. " failed: " .. tostring(err))
+  end
+end
+
+-- -----------------------------------------------------------------------
 -- Outgoing messages
 
 local CreateRequest = function(event, data)
@@ -454,6 +504,33 @@ local GetJudgmentCounts = function(player)
   return judgmentCounts
 end
 
+-- Fields a module's player fields may never replace, even when they are nil.
+local corePlayerFields = {
+  playerId = true,
+  profileName = true,
+  screenName = true,
+  ready = true,
+  judgments = true,
+  score = true,
+  exScore = true,
+  isFailed = true,
+}
+
+local AddModulePlayerFields = function(entry, player, screenName)
+  for name, provider in pairs(lobbyPlayerFields) do
+    local ok, fields = pcall(provider, player, screenName)
+    if not ok then
+      lua.ReportScriptError("[Lobby] Player fields " .. name .. " failed: " .. tostring(fields))
+    elseif type(fields) == "table" then
+      for key, value in pairs(fields) do
+        if not corePlayerFields[key] then
+          entry[key] = value
+        end
+      end
+    end
+  end
+end
+
 local GetMachineState = function(params)
   -- NOTE(teejusb): Keep in mind that SCREENMAN:GetTopScreen() might return nil since we might be
   -- transitioning screens when we receive any messages from the server.
@@ -467,7 +544,8 @@ local GetMachineState = function(params)
 
   local players = {}
   for player in ivalues(GAMESTATE:GetEnabledPlayers()) do
-    if GAMESTATE:IsSideJoined(player) then
+    -- A placeholder guest on an empty pad is never part of the lobby.
+    if GAMESTATE:IsSideJoined(player) and not IsPlaceholderSide(player) then
       local judgments = nil
       local score = nil
       local exScore = nil
@@ -495,6 +573,7 @@ local GetMachineState = function(params)
         isFailed = isFailed,
         -- TODO(teejusb): Add song progression.
       }
+      AddModulePlayerFields(players[pn], player, screenName)
     end
   end
 
@@ -502,6 +581,7 @@ local GetMachineState = function(params)
   -- player1/player2 key will be nil.
   return {
     machine = {
+      cabinetId=GetCabinetId(),
       player1=players["P1"],
       player2=players["P2"]
     }
@@ -589,6 +669,8 @@ local HandleResponse = function(response)
     MESSAGEMAN:Broadcast("OnlineClientDisconnected", data or {})
   elseif event == "responseStatus" then
     MESSAGEMAN:Broadcast("OnlineResponseStatus", data or {})
+  elseif event == "machineCommand" then
+    RunLobbyCommand(data)
   end
 end
 
@@ -637,6 +719,17 @@ local InputHandler = function(event)
   end
 
   return false
+end
+
+-- Input callbacks are dropped with their screen, so each screen gets one.
+local inputHandlerScreen = nil
+
+local AddInputHandler = function()
+  local screen = SCREENMAN:GetTopScreen()
+  if screen ~= nil and screen ~= inputHandlerScreen then
+    screen:AddInputCallback(InputHandler)
+    inputHandlerScreen = screen
+  end
 end
 
 -- -----------------------------------------------------------------------
@@ -742,10 +835,10 @@ CreateOnlineHandler = function()
             readyState[ToEnumShortString(player)] = autoReady
           end
           -- Input callbacks get cleared out when we transition screens, so we don't need to worry about explicitly removing it.
-          SCREENMAN:GetTopScreen():AddInputCallback(InputHandler)
+          AddInputHandler()
           SCREENMAN:GetTopScreen():PauseGame(true)
         elseif isWaiting then
-          SCREENMAN:GetTopScreen():AddInputCallback(InputHandler)
+          AddInputHandler()
         end
 
         -- Components of the new screen may have read the model before this

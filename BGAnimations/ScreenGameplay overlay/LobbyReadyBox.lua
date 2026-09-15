@@ -162,7 +162,10 @@ local af = Def.ActorFrame{
 }
 
 for player in ivalues(GAMESTATE:GetHumanPlayers()) do
-	af[#af+1] = ReadyBox(player)
+	-- A placeholder guest on an empty pad is not part of the lobby.
+	if not IsPlaceholderSide(player) then
+		af[#af+1] = ReadyBox(player)
+	end
 end
 
 return af
