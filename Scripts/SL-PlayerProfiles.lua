@@ -91,6 +91,75 @@ local permitted_profile_settings = {
 local theme_name = THEME:GetThemeDisplayName()
 local filename =  theme_name .. " UserPrefs.ini"
 
+-- Applies settings read from a profile's UserPrefs.ini or received with a lobby
+-- seat; both go through the same validation.
+ApplyProfileSettings = function(player, settings)
+	local pn = ToEnumShortString(player)
+
+	-- for each key/value pair read in from the player's profile
+	for k,v in pairs(settings) do
+		-- ensure that the key has a corresponding key in permitted_profile_settings
+		if permitted_profile_settings[k]
+		--  ensure that the datatype of the value matches the datatype specified in permitted_profile_settings
+		and type(v)==permitted_profile_settings[k] then
+			-- if the datatype is string and this key corresponds with an OptionRow in ScreenPlayerOptions
+			-- ensure that the string read in from the player's profile
+			-- is a valid value (or choice) for the corresponding OptionRow
+			if type(v) == "string" and CustomOptionRow(k) and FindInTable(v, CustomOptionRow(k).Values or CustomOptionRow(k).Choices)
+			or type(v) ~= "string" then
+				SL[pn].ActiveModifiers[k] = v
+			end
+
+			if k=="PlayerOptionsStringDouble" or k=="PlayerOptionsStringRoutine" then
+				SL[pn][k] = v
+			end
+
+			-- special-case PlayerOptionsString for now
+			-- it is saved to and read from profile as a string, but doesn't have a corresponding
+			-- OptionRow in ScreenPlayerOptions, so it will fail validation above
+			-- we want engine-defined mods (e.g. dizzy) to be applied as well, not just SL-defined mods
+			if k=="PlayerOptionsString" and type(v)=="string" then
+				-- v here is the comma-delimited set of modifiers the engine's PlayerOptions interface understands
+
+				-- use the engine's SetPlayerOptions() method to set a whole bunch of mods in the engine all at once
+				GAMESTATE:GetPlayerState(player):SetPlayerOptions("ModsLevel_Preferred", v)
+				-- Special case timing windows as they're not controllable in SL.
+				GAMESTATE:GetPlayerState(player):GetPlayerOptions("ModsLevel_Preferred"):ResetDisabledTimingWindows()
+
+				-- However! It's quite likely that a FailType mod could be in that^ string, meaning a player could
+				-- have their own setting for FailType saved to their profile.  I think it makes more sense to let
+				-- machine operators specify a default FailType at a global/machine level, so use this opportunity to
+				-- use the PlayerOptions interface to set FailSetting() using the default FailType setting from
+				-- the operator menu's Advanced Options
+				GAMESTATE:GetPlayerState(player):GetPlayerOptions("ModsLevel_Preferred"):FailSetting( GetDefaultFailType() )
+
+				-- Finally extract out the PlayerOptionsString by the fetching it from the engine
+				-- Update the SL table so that this PlayerOptionsString value is easily accessible throughout the theme
+				SL[pn].PlayerOptionsString = GAMESTATE:GetPlayerState(player):GetPlayerOptionsString("ModsLevel_Preferred")
+			end
+		end
+	end
+end
+
+-- The settings a profile saves, also what a lobby seat reports back to the hub.
+ProfileSettingsOf = function(player)
+	local pn = ToEnumShortString(player)
+	local output = {}
+	for k,v in pairs(SL[pn].ActiveModifiers) do
+		if permitted_profile_settings[k] and type(v)==permitted_profile_settings[k] then
+			output[k] = v
+		end
+	end
+
+	-- these values are saved outside the SL[pn].ActiveModifiers tables
+	-- and thus won't be handled in the loop above
+	output.PlayerOptionsString = SL[pn].PlayerOptionsString
+	output.PlayerOptionsStringDouble = SL[pn].PlayerOptionsStringDouble
+	output.PlayerOptionsStringRoutine = SL[pn].PlayerOptionsStringRoutine
+
+	return output
+end
+
 
 -- Function called when a [GUEST] joins during SSM, either by late joining or via the fast
 -- profile switcher. It does two things:
@@ -135,50 +204,7 @@ LoadProfileCustom = function(profile, dir)
 
 	if pn and FILEMAN:DoesFileExist(path) then
 		filecontents = IniFile.ReadFile(path)[theme_name] or {}
-
-		-- for each key/value pair read in from the player's profile
-		for k,v in pairs(filecontents) do
-			-- ensure that the key has a corresponding key in permitted_profile_settings
-			if permitted_profile_settings[k]
-			--  ensure that the datatype of the value matches the datatype specified in permitted_profile_settings
-			and type(v)==permitted_profile_settings[k] then
-				-- if the datatype is string and this key corresponds with an OptionRow in ScreenPlayerOptions
-				-- ensure that the string read in from the player's profile
-				-- is a valid value (or choice) for the corresponding OptionRow
-				if type(v) == "string" and CustomOptionRow(k) and FindInTable(v, CustomOptionRow(k).Values or CustomOptionRow(k).Choices)
-				or type(v) ~= "string" then
-					SL[pn].ActiveModifiers[k] = v
-				end
-
-				if k=="PlayerOptionsStringDouble" or k=="PlayerOptionsStringRoutine" then
-					SL[pn][k] = v
-				end
-
-				-- special-case PlayerOptionsString for now
-				-- it is saved to and read from profile as a string, but doesn't have a corresponding
-				-- OptionRow in ScreenPlayerOptions, so it will fail validation above
-				-- we want engine-defined mods (e.g. dizzy) to be applied as well, not just SL-defined mods
-				if k=="PlayerOptionsString" and type(v)=="string" then
-					-- v here is the comma-delimited set of modifiers the engine's PlayerOptions interface understands
-
-					-- use the engine's SetPlayerOptions() method to set a whole bunch of mods in the engine all at once
-					GAMESTATE:GetPlayerState(player):SetPlayerOptions("ModsLevel_Preferred", v)
-					-- Special case timing windows as they're not controllable in SL.
-					GAMESTATE:GetPlayerState(player):GetPlayerOptions("ModsLevel_Preferred"):ResetDisabledTimingWindows()
-
-					-- However! It's quite likely that a FailType mod could be in that^ string, meaning a player could
-					-- have their own setting for FailType saved to their profile.  I think it makes more sense to let
-					-- machine operators specify a default FailType at a global/machine level, so use this opportunity to
-					-- use the PlayerOptions interface to set FailSetting() using the default FailType setting from
-					-- the operator menu's Advanced Options
-					GAMESTATE:GetPlayerState(player):GetPlayerOptions("ModsLevel_Preferred"):FailSetting( GetDefaultFailType() )
-					
-					-- Finally extract out the PlayerOptionsString by the fetching it from the engine
-					-- Update the SL table so that this PlayerOptionsString value is easily accessible throughout the theme
-					SL[pn].PlayerOptionsString = GAMESTATE:GetPlayerState(player):GetPlayerOptionsString("ModsLevel_Preferred")
-				end
-			end
-		end
+		ApplyProfileSettings(player, filecontents)
 	end
 
 	if pn then
@@ -201,20 +227,7 @@ SaveProfileCustom = function(profile, dir)
 			if  SL[pn].PlayerOptionsStringKey then
 				SL[pn][SL[pn].PlayerOptionsStringKey] = GAMESTATE:GetPlayerState(player):GetPlayerOptionsString("ModsLevel_Preferred")
 			end
-			local output = {}
-			for k,v in pairs(SL[pn].ActiveModifiers) do
-				if permitted_profile_settings[k] and type(v)==permitted_profile_settings[k] then
-					output[k] = v
-				end
-			end
-
-			-- these values are saved outside the SL[pn].ActiveModifiers tables
-			-- and thus won't be handled in the loop above
-			output.PlayerOptionsString = SL[pn].PlayerOptionsString
-			output.PlayerOptionsStringDouble = SL[pn].PlayerOptionsStringDouble
-			output.PlayerOptionsStringRoutine = SL[pn].PlayerOptionsStringRoutine
-
-			IniFile.WriteFile( path, {[theme_name]=output} )
+			IniFile.WriteFile( path, {[theme_name]=ProfileSettingsOf(player)} )
 
 			WriteGrooveStatsIni(player)
 			-- Write to the ITL file if we need to.
