@@ -55,12 +55,29 @@ for i, judgment in ipairs(TNS.Types) do
 	end
 end
 
-local leadingZeroAttr
-local row_height = ShowFaPlusWindow and 29 or 35
-
 local windows = {}
 if ShowFaPlusWindow then
 	windows[#windows + 1] = SL[pn].ActiveModifiers.TimingWindows[1]
+end
+
+-- A narrower FaPlusWindowMs adds a veiled Fantastic row for hits between it and 15ms.
+-- All rows shrink to fit the extra row into the same space.
+local window_ms = SL[pn].ActiveModifiers.FaPlusWindowMs
+local ShowVeilRow = ShowFaPlusWindow and window_ms and window_ms < 15
+if ShowVeilRow then
+	table.insert(TNS.Types, 2, 'W0Veil')
+	TNS.Judgments["W0Veil"] = 0
+	table.insert(TNS.Names, 2, THEME:GetString("TapNoteScoreFA+", "W1"))
+	table.insert(TNS.Colors, 2, GetW0VeilColor())
+	table.insert(windows, 1, SL[pn].ActiveModifiers.TimingWindows[1])
+end
+
+local leadingZeroAttr
+local row_height = ShowFaPlusWindow and 29 or 35
+local row_zoom = 1
+if ShowVeilRow then
+	row_height = row_height * (#TNS.Types - 2) / (#TNS.Types - 1)
+	row_zoom = row_height / 29
 end
 
 for v in ivalues( SL[pn].ActiveModifiers.TimingWindows) do
@@ -97,7 +114,7 @@ for index, window in ipairs(TNS.Types) do
 	af[#af+1] = LoadFont("Wendy/_ScreenEvaluation numbers")..{
 		Text=(pattern):format(0),
 		InitCommand=function(self)
-			self:zoom(0.5)
+			self:zoom(0.5 * row_zoom)
 			self:y((index-1)*row_height - 280)
 			if style ~= "double" then
 				self:halign( PlayerNumber:Reverse()[player] )
@@ -128,13 +145,10 @@ for index, window in ipairs(TNS.Types) do
 
 			-- Check the top window case for ShowFaPlusWindow.
 			if ShowFaPlusWindow and ToEnumShortString(params.TapNoteScore) == "W1" then
-				local is_W0 = IsW0Judgment(params, player)
-				if is_W0 and window == "W0" then
-					TNS.Judgments[window] = TNS.Judgments[window] + 1
-					incremented = true
-				end
-
-				if not is_W0 and window == "W1" then
+				local tier = IsW0Judgment(params, player) and "W0"
+					or (ShowVeilRow and IsW0Judgment(params, player, 15) and "W0Veil")
+					or "W1"
+				if tier == window then
 					TNS.Judgments[window] = TNS.Judgments[window] + 1
 					incremented = true
 				end
@@ -165,7 +179,7 @@ for index, window in ipairs(TNS.Types) do
 			af[#af+1] = LoadFont("Common Normal")..{
 				Text=TNS.Names[index]:upper(),
 				InitCommand=function(self)
-					self:zoom(0.833):maxwidth(72)
+					self:zoom(0.833 * row_zoom):maxwidth(72)
 					if style ~= "double" then
 						self:halign( PlayerNumber:Reverse()[player] )
 					else
@@ -181,6 +195,33 @@ for index, window in ipairs(TNS.Types) do
 					self:diffuse( TNS.Colors[index] )
 
 					-- flip alignment when ultrawide and both players joined
+					if IsUltraWide and #GAMESTATE:GetHumanPlayers() > 1 then
+						self:halign( PlayerNumber:Reverse()[OtherPlayer[player]] )
+						self:x(self:GetX() * -1)
+					end
+				end,
+			}
+		end
+
+		if index == 1 and ShowVeilRow then
+			af[#af+1] = LoadFont("Common Normal")..{
+				Text=("(%dms)"):format(window_ms),
+				InitCommand=function(self)
+					self:zoom(0.5):maxwidth(72)
+					if style ~= "double" then
+						self:halign( PlayerNumber:Reverse()[player] )
+					else
+						self:halign(1)
+					end
+
+					if player == PLAYER_1 or style == "double" then
+						self:x( 80 + (digits-4)*16)
+					else
+						self:x(-80 - (digits-4)*16)
+					end
+					self:y((index-0.5) * row_height - 279)
+					self:diffuse( TNS.Colors[index] )
+
 					if IsUltraWide and #GAMESTATE:GetHumanPlayers() > 1 then
 						self:halign( PlayerNumber:Reverse()[OtherPlayer[player]] )
 						self:x(self:GetX() * -1)

@@ -2,6 +2,7 @@ local player = Var "Player"
 local pn = ToEnumShortString(player)
 local mods = SL[pn].ActiveModifiers
 local sprite
+local veil
 local coupleSprite
 local style = GAMESTATE:GetCurrentStyle()
 local styletype = style and style:GetStyleType() or nil
@@ -21,7 +22,7 @@ if file_to_load == "None" then
 			if param.Player ~= player then return end
 
 			if ToEnumShortString(param.TapNoteScore) == "W1" and mods.ShowFaPlusWindow then
-				if not IsW0Judgment(param, player) and not IsAutoplay(player) then
+				if not IsW0Judgment(param, player, 15) and not IsAutoplay(player) then
 					frame = 1
 					if param.Notes ~= nil then
 						for col,tapnote in pairs(param.Notes) do
@@ -50,6 +51,30 @@ end
 
 ------------------------------------------------------------
 
+local LoadJudgmentSheet = function(self)
+	-- animate(false) is needed so that this Sprite does not automatically
+	-- animate its way through all available frames; we want to control which
+	-- frame displays based on what judgment the player earns
+	self:animate(false):visible(false)
+
+	-- if we are on ScreenEdit, judgment graphic is always "Love"
+	-- because ScreenEdit is a mess and not worth bothering with.
+	if string.match(tostring(SCREENMAN:GetTopScreen()), "ScreenEdit") then
+		self:Load( THEME:GetPathG("", "_judgments/Love") )
+	else
+		self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
+	end
+	if styletype == "StyleType_TwoPlayersSharedSides" then
+		if player == PLAYER_1 then
+			self:addy(10)
+			self:diffuse(Color.Blue)
+		else
+			self:addy(60)
+			self:diffuse(Color.Red)
+		end
+	end
+end
+
 local TNSFrames = {
 	TapNoteScore_W1 = 0,
 	TapNoteScore_W2 = 1,
@@ -66,6 +91,7 @@ return Def.ActorFrame{
 	InitCommand=function(self)
 		local kids = self:GetChildren()
 		sprite = kids.JudgmentWithOffsets
+		veil = kids.FaPlusVeil
 	end,
 	EarlyHitMessageCommand=function(self, param)
 		if param.Player ~= player then return end
@@ -87,7 +113,7 @@ return Def.ActorFrame{
 						-- Treat Autoplay specially. The TNS might be out of the range, but
 						-- it's a nicer experience to always just display the top window graphic regardless.
 						-- This technically causes a discrepency on the histogram, but it's likely okay.
-						if not IsW0Judgment(param, player) and not IsAutoplay(player) then
+						if not IsW0Judgment(param, player, 15) and not IsAutoplay(player) then
 							frame = 1
 						end
 					end
@@ -154,7 +180,7 @@ return Def.ActorFrame{
 					-- Treat Autoplay specially. The TNS might be out of the range, but
 					-- it's a nicer experience to always just display the top window graphic regardless.
 					-- This technically causes a discrepency on the histogram, but it's likely okay.
-					if not IsW0Judgment(param, player) and not IsAutoplay(player) then
+					if not IsW0Judgment(param, player, 15) and not IsAutoplay(player) then
 						frame = 1
 						
 						for col,tapnote in pairs(param.Notes) do
@@ -202,37 +228,27 @@ return Def.ActorFrame{
 		end
 		-- this should match the custom JudgmentTween() from SL for 3.95
 		sprite:zoom(0.8):decelerate(0.1):zoom(0.75):sleep(0.6):accelerate(0.2):zoom(0)
+
+		-- A blue Fantastic outside the player's narrower FaPlusWindowMs gets a translucent white Fantastic on top.
+		if tns == "W1" and mods.ShowFaPlusWindow and (sprite:GetNumStates() == 7 or sprite:GetNumStates() == 14)
+				and IsW0Judgment(param, player, 15) and not IsW0Judgment(param, player) and not IsAutoplay(player) then
+			local white = 1
+			if sprite:GetNumStates() == 14 then
+				white = 2 + (param.Early and 0 or 1)
+			end
+			veil:visible(true):setstate(white):diffusealpha(0.5):rotationz(sprite:GetRotationZ())
+			veil:zoom(0.8):decelerate(0.1):zoom(0.75):sleep(0.6):accelerate(0.2):zoom(0)
+		end
 	end,
 
 	Def.Sprite{
 		Name="JudgmentWithOffsets",
-		InitCommand=function(self)
-			-- animate(false) is needed so that this Sprite does not automatically
-			-- animate its way through all available frames; we want to control which
-			-- frame displays based on what judgment the player earns
-			self:animate(false):visible(false)
-			
-			-- if we are on ScreenEdit, judgment graphic is always "Love"
-			-- because ScreenEdit is a mess and not worth bothering with.
-			if string.match(tostring(SCREENMAN:GetTopScreen()), "ScreenEdit") then
-				self:Load( THEME:GetPathG("", "_judgments/Love") )
-
-			else
-				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
-			end
-			-- local mini = mods.Mini:gsub("%%","") / 100
-			-- self:addx((mods.NoteFieldOffsetX * (1 + mini)) * 2)
-			-- self:addy((mods.NoteFieldOffsetY * (1 + mini)) * 2)
-			if styletype == "StyleType_TwoPlayersSharedSides" then 
-				if player == PLAYER_1 then
-					self:addy(10)
-					self:diffuse(Color.Blue)
-				else
-					self:addy(60)
-					self:diffuse(Color.Red)
-				end
-			end
-		end,
+		InitCommand=function(self) LoadJudgmentSheet(self) end,
 		ResetCommand=function(self) self:finishtweening():stopeffect():visible(false) end
+	},
+	Def.Sprite{
+		Name="FaPlusVeil",
+		InitCommand=function(self) LoadJudgmentSheet(self) end,
+		ResetCommand=function(self) self:finishtweening():visible(false) end
 	}
 }

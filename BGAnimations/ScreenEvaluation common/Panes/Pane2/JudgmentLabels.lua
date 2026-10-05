@@ -1,4 +1,4 @@
-local player, controller = unpack(...)
+local player, controller, _, restricted = unpack(...)
 
 local pn = ToEnumShortString(player)
 local stats = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
@@ -91,6 +91,18 @@ for i=1, #TapNoteScores.Types do
 			end
 		}
 	end
+end
+
+if restricted then
+	t[#t+1] = LoadFont("Common Normal")..{
+		Text=("%dms"):format(SL[pn].ActiveModifiers.FaPlusWindowMs),
+		InitCommand=function(self)
+			self:zoom(0.6):horizalign(right)
+			self:x( (controller == PLAYER_1 and 28) or -28 )
+			self:y(-7)
+			self:diffuse( TapNoteScores.Colors[1] )
+		end
+	}
 end
 
 -- labels: hands/ex, holds, mines, rolls
