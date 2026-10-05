@@ -610,23 +610,35 @@ IsAutoplay = function(player)
 end
 
 -- -----------------------------------------------------------------------
+-- The W0 window in seconds. ms is the window size before TimingWindowScale is applied;
+-- it defaults to the player's FaPlusWindowMs, a display-only narrowing of the 15ms FA+ window.
+-- Scoring (EX score, rescored judgments) must always pass 15.
+GetW0Window = function(player, ms)
+	local prefs = SL.Preferences["FA+"]
+	local scale = PREFSMAN:GetPreference("TimingWindowScale")
+	ms = ms or (player and SL[ToEnumShortString(player)].ActiveModifiers.FaPlusWindowMs) or 15
+	-- Narrow from TimingWindowSecondsW1 so that 15ms yields exactly the original window.
+	return (prefs.TimingWindowSecondsW1 - (15 - ms) / 1000) * scale + prefs.TimingWindowAdd
+end
+
+-- -----------------------------------------------------------------------
+-- The FA+ blue washed toward white, for hits between FaPlusWindowMs and 15ms.
+GetW0VeilColor = function()
+	local c = SL.JudgmentColors["FA+"][1]
+	return { c[1] + (1 - c[1]) * 0.55, c[2] + (1 - c[2]) * 0.55, c[3] + (1 - c[3]) * 0.55, 1 }
+end
+
+-- -----------------------------------------------------------------------
 -- Helper function to determine if a TNS falls within the W0 window.
 -- Params are the params received from the JudgmentMessageCommand.
 -- Returns true/false
-IsW0Judgment = function(params, player)
+IsW0Judgment = function(params, player, ms)
 	if params.Player ~= player then return false end
 	if params.HoldNoteScore then return false end
 
 	-- Only check/update FA+ count if we received a TNS in the top window.
 	if params.TapNoteScore == "TapNoteScore_W1" and SL.Global.GameMode == "ITG" then
-		local prefs = SL.Preferences["FA+"]
-		local scale = PREFSMAN:GetPreference("TimingWindowScale")
-		local W0 = prefs["TimingWindowSecondsW1"] * scale + prefs["TimingWindowAdd"]
-
-		local offset = math.abs(params.TapNoteOffset)
-		if offset <= W0 then
-			return true
-		end
+		return math.abs(params.TapNoteOffset) <= GetW0Window(player, ms)
 	end
 	return false
 end

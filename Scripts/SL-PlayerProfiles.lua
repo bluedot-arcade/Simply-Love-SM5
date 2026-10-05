@@ -71,6 +71,7 @@ local permitted_profile_settings = {
 	ShowFaPlusWindow     = "boolean",
 	ShowExScore          = "boolean",
 	ShowFaPlusPane       = "boolean",
+	FaPlusWindowMs       = "number",
 
 	HideEarlyDecentWayOffJudgments = "boolean",
 	HideEarlyDecentWayOffFlash     = "boolean",

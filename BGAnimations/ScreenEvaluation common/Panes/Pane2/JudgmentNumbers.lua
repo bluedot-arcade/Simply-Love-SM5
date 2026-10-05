@@ -1,4 +1,4 @@
-local player, controller = unpack(...)
+local player, controller, _, restricted = unpack(...)
 local styletype = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 local pn = ToEnumShortString(player)
 local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(player)
@@ -27,6 +27,11 @@ local RadarCategories = {
 
 -- TODO(Zankoku) - EX judgments are in storage now, so we shouldn't have to calculate this all over again
 local counts = GetExJudgmentCounts(player)
+if restricted and counts.W0 then
+	local custom = SL[pn].Stages.Stats[SL.Global.Stages.PlayedThisGame + 1].ex_counts.W0_custom_total
+	counts.W1 = counts.W1 + counts.W0 - custom
+	counts.W0 = custom
+end
 
 local t = Def.ActorFrame{
 	InitCommand=function(self)self:zoom(0.8):xy(90,_screen.cy-24) end,

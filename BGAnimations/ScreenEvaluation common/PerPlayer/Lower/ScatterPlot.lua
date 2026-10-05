@@ -133,6 +133,20 @@ if iscourse then
 	end
 end
 
+-- Shade the player's narrower FaPlusWindowMs behind the dots.
+local window_ms = mods.FaPlusWindowMs
+if mods.ShowFaPlusWindow and mods.ShowFaPlusPane and SL.Global.GameMode == "ITG" and window_ms and window_ms < 15 then
+	local w0 = GetW0Window(player)
+	af[#af+1] = Def.Quad{
+		InitCommand=function(self)
+			self:horizalign(left):vertalign(top)
+				:xy(-GraphWidth/2, scale(w0, worst_window, -worst_window, 0, GraphHeight))
+				:zoomto(GraphWidth, w0 / worst_window * GraphHeight)
+				:diffuse(SL.JudgmentColors["FA+"][1]):diffusealpha(0.15)
+		end
+	}
+end
+
 for verts in ivalues(vertsTable) do
 	local amv = Def.ActorMultiVertex{
 		InitCommand=function(self) self:x(-GraphWidth/2) end,
