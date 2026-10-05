@@ -106,6 +106,22 @@ local pane = Def.ActorFrame{
 	end
 }
 
+-- Shade the player's narrower FaPlusWindowMs behind the histogram.
+local mods = SL[pn].ActiveModifiers
+if mods.ShowFaPlusWindow and mods.ShowFaPlusPane and SL.Global.GameMode == "ITG" and mods.FaPlusWindowMs and mods.FaPlusWindowMs < 15 then
+	local w0 = GetW0Window(player)
+	pane[#pane+1] = Def.Quad{
+		InitCommand=function(self)
+			local x_left = scale(-w0, -worst_window, worst_window, 0, pane_width)
+			local x_right = scale(w0, -worst_window, worst_window, 0, pane_width)
+			self:horizalign(left):vertalign(bottom)
+				:xy(x_left, 0)
+				:zoomto(x_right - x_left, pane_height - (topbar_height+bottombar_height))
+				:diffuse(SL.JudgmentColors["FA+"][1]):diffusealpha(0.15)
+		end
+	}
+end
+
 -- the line in the middle indicating where truly flawless timing (0ms offset) is
 pane[#pane+1] = Def.Quad{
 	InitCommand=function(self)

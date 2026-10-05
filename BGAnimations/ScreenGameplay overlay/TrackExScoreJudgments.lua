@@ -53,7 +53,9 @@ return Def.Actor{
 			-- The W0 count displayed in the pane in ScreenEvaluation should
 			-- still display the total count (whether or not the player has failed).
 			-- Track that separately.
-			W0_total = 0
+			W0_total = 0,
+			-- Hits within the player's FaPlusWindowMs; display only, never used for scoring.
+			W0_custom_total = 0
 		}
 	end,
 	JudgmentMessageCommand=function(self, params)
@@ -81,7 +83,10 @@ return Def.Actor{
 			if SL.Global.GameMode == "ITG" then
 				if TNS == "W1" then
 					-- Check if this W1 is actually in the W0 window
-					local is_W0 = IsW0Judgment(params, player)
+					if IsW0Judgment(params, player) then
+						storage.ex_counts.W0_custom_total = storage.ex_counts.W0_custom_total + 1
+					end
+					local is_W0 = IsW0Judgment(params, player, 15)
 					if is_W0 then
 						if not stats:GetFailed() then
 							storage.ex_counts.W0 = storage.ex_counts.W0 + 1

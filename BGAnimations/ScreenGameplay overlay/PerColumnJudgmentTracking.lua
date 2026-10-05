@@ -52,7 +52,7 @@ return Def.Actor{
 						local etns = ToEnumShortString(params.EarlyTapNoteScore)
 						
 						if etns ~= "None" then
-							if IsW0Judgment(params, player) then
+							if IsW0Judgment(params, player, 15) then
 								judgments[col]["Early"]["W0"] = judgments[col]["Early"]["W0"] + 1
 							elseif tns ~= "W4" and tns ~= "W5" and tns ~= "Miss" then
 								judgments[col]["Early"][tns] = judgments[col]["Early"][tns] + 1
@@ -64,7 +64,7 @@ return Def.Actor{
 						end
 					end
 
-					if mods.ShowFaPlusWindow and mods.ShowFaPlusPane and IsW0Judgment(params, player) then
+					if mods.ShowFaPlusWindow and mods.ShowFaPlusPane and IsW0Judgment(params, player, 15) then
 						tns = "W0"
 					end
 					judgments[col][tns] = judgments[col][tns] + 1
