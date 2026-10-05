@@ -37,6 +37,9 @@ local function DisplayTick(self, params)
         if mods.ShowFaPlusWindow then
             if IsW0Judgment(params, player) then
                 window = "W0"
+            elseif IsW0Judgment(params, player, 15) then
+                window = "W0Veil"
+                isTopWindow = false
             else
                 isTopWindow = false
             end
@@ -134,6 +137,7 @@ local lastx = 0
 local windows = {
     timing = {},
     color = {},
+    name = {},
 }
 
 for i = 1, #enabledTimingWindows do
@@ -141,14 +145,23 @@ for i = 1, #enabledTimingWindows do
     
     if mods.ShowFaPlusWindow and wi == 1 then
         -- Split the Fantastic window
-        windows.timing[#windows.timing + 1] = GetTimingWindow(1, "FA+")
+        windows.timing[#windows.timing + 1] = GetW0Window(player)
         windows.color[#windows.color + 1] = SL.JudgmentColors["FA+"][1]
+        windows.name[#windows.name + 1] = "W0"
+
+        if mods.FaPlusWindowMs and mods.FaPlusWindowMs < 15 then
+            windows.timing[#windows.timing + 1] = GetW0Window(player, 15)
+            windows.color[#windows.color + 1] = GetW0VeilColor()
+            windows.name[#windows.name + 1] = "W0Veil"
+        end
 
         windows.timing[#windows.timing + 1] = GetTimingWindow(2, "FA+")
         windows.color[#windows.color + 1] = SL.JudgmentColors["FA+"][2]
+        windows.name[#windows.name + 1] = "W1"
     else
         windows.timing[#windows.timing + 1] = GetTimingWindow(wi)
         windows.color[#windows.color + 1] = SL.JudgmentColors[SL.Global.GameMode][wi]
+        windows.name[#windows.name + 1] = "W" .. wi
     end 
 end
 
@@ -158,16 +171,14 @@ for i, window in ipairs(windows.timing) do
     local width = x - lastx
     local judgmentColor = windows.color[i]
 
-    local windowNum = mods.ShowFaPlusWindow and i - 1 or i
-
     bar_af[#bar_af+1] = Def.Quad{
-        Name="EarlyW" .. windowNum,
+        Name="Early" .. windows.name[i],
         InitCommand = function(self)
             self:x(-x):horizalign("left"):zoomto(width, barHeight):diffuse(judgmentColor):diffusealpha(0.3)
         end
     }
     bar_af[#bar_af+1] = Def.Quad{
-        Name="LateW" .. windowNum,
+        Name="Late" .. windows.name[i],
         InitCommand = function(self)
             self:x(x):horizalign("right"):zoomto(width, barHeight):diffuse(judgmentColor):diffusealpha(0.3)
         end

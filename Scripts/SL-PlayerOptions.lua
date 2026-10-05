@@ -464,6 +464,22 @@ local Overrides = {
 		end
 	},
 	-------------------------------------------------------------------------
+	FaPlusWindowMs = {
+		Values = function() return range(5, 15, 1) end,
+		Choices = function() return stringify(range(5, 15, 1), "%dms") end,
+		LoadSelections = function(self, list, pn)
+			local mods = SL[ToEnumShortString(pn)].ActiveModifiers
+			list[FindInTable(mods.FaPlusWindowMs, self.Values) or #self.Values] = true
+			return list
+		end,
+		SaveSelections = function(self, list, pn)
+			local mods = SL[ToEnumShortString(pn)].ActiveModifiers
+			for i, v in ipairs(self.Values) do
+				if list[i] then mods.FaPlusWindowMs = v end
+			end
+		end
+	},
+	-------------------------------------------------------------------------
 	Hide = {
 		SelectType = "SelectMultiple",
 		Values = { "Targets", "SongBG", "Combo", "Lifebar", "Score", "Danger", "ComboExplosions" },

@@ -60,6 +60,7 @@ local PlayerDefaults = {
 				ShowFaPlusWindow = false,
 				ShowExScore = false,
 				ShowFaPlusPane = true,
+				FaPlusWindowMs = 15,
 
 				NoteFieldOffsetX = 0,
 				NoteFieldOffsetY = 0,

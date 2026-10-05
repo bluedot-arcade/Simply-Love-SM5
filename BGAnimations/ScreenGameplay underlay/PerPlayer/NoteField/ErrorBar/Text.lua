@@ -8,7 +8,7 @@ local threshold = nil
 for i = 1, NumJudgmentsAvailable() do
     if mods.TimingWindows[i] then
         if i == 1 and mods.ShowFaPlusWindow then
-            threshold = GetTimingWindow(1, "FA+")
+            threshold = GetW0Window(player)
         else
             threshold = GetTimingWindow(i)
         end
@@ -21,6 +21,8 @@ local function DisplayText(self, params)
     if score == "W1" or score == "W2" or score == "W3" or score == "W4" or score == "W5" then
         if math.abs(params.TapNoteOffset) > threshold then
             self:finishtweening()
+            -- Smaller text for hits that only missed the player's narrower FaPlusWindowMs.
+            self:zoom(math.abs(params.TapNoteOffset) <= GetW0Window(player, 15) and 0.125 or 0.25)
 
             self:diffusealpha(1)
                 :settext(params.Early and "EARLY" or "LATE")
