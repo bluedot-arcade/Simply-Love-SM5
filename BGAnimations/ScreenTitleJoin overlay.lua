@@ -1,9 +1,40 @@
+-- Start five times in quick succession opens the pack manager, but only while a
+-- USB drive with the pack manager key file is plugged in. Lua callbacks run
+-- after the screen's own input, so with credits in the first Start still joins.
+local CODE_PRESSES = 5
+local STREAK_SECONDS = 0.8
+local packs = LoadActor("ScreenPackManager overlay/packs.lua")
+local presses, last_press, key_in = 0, -math.huge, false
+
+local function code_input(event)
+	if event.type ~= "InputEventType_FirstPress" or event.GameButton ~= "Start" then return false end
+
+	local now = GetTimeSinceStart()
+	if now - last_press > STREAK_SECONDS then
+		presses = 0
+		-- scanning drives is not free, so once per streak
+		key_in = packs.usb_has_key()
+	end
+	last_press = now
+	if not key_in then return false end
+
+	presses = presses + 1
+	if presses >= CODE_PRESSES then
+		presses = 0
+		local screen = SCREENMAN:GetTopScreen()
+		screen:SetNextScreenName("ScreenPackManagerTitle")
+		screen:StartTransitioningScreen("SM_GoToNextScreen")
+	end
+	return false
+end
+
 return LoadFont("Common Bold")..{
 	InitCommand=function(self)
 		self:xy(_screen.cx,_screen.h-80):zoom(0.7):shadowlength(0.75)
 		self:visible(false):queuecommand("Refresh")
 	end,
 	OnCommand=function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(code_input)
 		self:diffuseshift():effectperiod(1.333)
 		self:effectcolor1(1,1,1,0):effectcolor2(1,1,1,1)
 	end,
