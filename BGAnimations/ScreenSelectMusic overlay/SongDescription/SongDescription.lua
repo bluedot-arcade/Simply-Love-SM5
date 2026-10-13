@@ -54,7 +54,7 @@ af[#af+1] = Def.ActorFrame{
 				local song = GAMESTATE:GetCurrentSong()
 				self:settext( song and song:GetDisplayArtist() or "" )
 
-				if not GAMESTATE:IsEventMode() and song and (song:IsLong() or song:IsMarathon()) then
+				if not GAMESTATE:IsEventMode() and song and song:GetStageCost() > 1 then
 					-- make room for the "COUNTS AS 2/3 ROUNDS" bubble
 					maxwidth = maxwidth - 120
 				end
@@ -208,7 +208,7 @@ if not GAMESTATE:IsEventMode() then
 		end,
 		SetCommand=function(self)
 			local song = GAMESTATE:GetCurrentSong()
-			self:visible( song and (song:IsLong() or song:IsMarathon()) or false )
+			self:visible( song and song:GetStageCost() > 1 or false )
 		end,
 
 
@@ -242,13 +242,8 @@ if not GAMESTATE:IsEventMode() then
 				local song = GAMESTATE:GetCurrentSong()
 				if not song then self:settext(""); return end
 
-				if song:IsMarathon() then
-					self:settext(THEME:GetString("SongDescription", "IsMarathon"))
-				elseif song:IsLong() then
-					self:settext(THEME:GetString("SongDescription", "IsLong"))
-				else
-					self:settext("")
-				end
+				local stages = song:GetStageCost()
+				self:settext(stages > 1 and THEME:GetString("SongDescription", "CountsAsRounds"):format(stages) or "")
 			end
 		}
 	}
