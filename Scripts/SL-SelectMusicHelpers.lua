@@ -67,7 +67,7 @@ end
 SSM_Header_StageText = function()
 
 	-- if the continue system is enabled, don't worry about determining "Final Stage"
-	if ThemePrefs.Get("NumberOfContinuesAllowed") > 0 then
+	if PREFSMAN:GetPreference("AllowContinue") then
 		return THEME:GetString("Stage", "Stage") .. " " .. tostring(SL.Global.Stages.PlayedThisGame + 1)
 	end
 
@@ -78,19 +78,9 @@ SSM_Header_StageText = function()
 		-- we might want to display the text for StageFinal, or we might want to
 		-- increment the Stages.PlayedThisGame by the cost of the song that was just played
 		if topscreen:GetName() == "ScreenEvaluationStage" then
-			local song = GAMESTATE:GetCurrentSong()
-			local Duration = song:GetLastSecond()
-			local DurationWithRate = Duration / SL.Global.ActiveModifiers.MusicRate
+			local SongCost = GAMESTATE:GetCurrentSong():GetStageCost()
 
-			local LongCutoff = PREFSMAN:GetPreference("LongVerSongSeconds")
-			local MarathonCutoff = PREFSMAN:GetPreference("MarathonVerSongSeconds")
-
-			local IsMarathon = (DurationWithRate/MarathonCutoff > 1)
-			local IsLong 	 = (DurationWithRate/LongCutoff > 1)
-
-			local SongCost = (IsMarathon and 3) or (IsLong and 2) or 1
-
-			if SL.Global.Stages.PlayedThisGame + SongCost >= PREFSMAN:GetPreference("SongsPerPlay") then
+			if GAMESTATE:GetSmallestNumStagesLeftForAnyHumanPlayer() <= 0 then
 				return THEME:GetString("Stage", "Final")
 			else
 				return THEME:GetString("Stage", "Stage") .. " " .. tostring(SL.Global.Stages.PlayedThisGame + SongCost)

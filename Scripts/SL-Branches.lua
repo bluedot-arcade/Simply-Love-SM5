@@ -1,46 +1,3 @@
-------------------------------------------------------------
--- Helper Functions for Branches
-------------------------------------------------------------
-
-local EnoughCreditsToContinue = function()
-	if PREFSMAN:GetPreference("CoinMode") ~= "CoinMode_Pay" then
-		-- if we're not in Pay mode, we don't want to gate continues behind credits at all
-		return true
-	end
-	local credits = GetCredits().Credits
-
-	local premium = ToEnumShortString(GAMESTATE:GetPremium())
-	local styletype = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
-
-	if premium == "2PlayersFor1Credit" then
-		return (credits > 0) -- any value greater than 0 is good enough
-
-	elseif premium == "DoubleFor1Credit" then
-		-- versus, routine, couple
-		if styletype == "TwoPlayersTwoSides" or styletype == "TwoPlayersSharedSides" then
-			return (credits > 1)
-
-		-- single, double, solo
-		else
-			return (credits > 0)
-		end
-
-	elseif premium == "Off" then
-		-- single, solo
-		if styletype == "OnePlayerOneSide" then
-			return (credits > 0)
-
-		-- versus, double, routine, couple
-		else
-			return (credits > 1)
-		end
-	end
-
-	return false
-end
-
-------------------------------------------------------------
-
 if not Branch then Branch = {} end
 
 Branch.AfterScreenRankingDouble = function()
@@ -268,69 +225,14 @@ Branch.AfterProfileSave = function()
 	elseif GAMESTATE:IsCourseMode() then
 		return Branch.AllowScreenNameEntry()
 
+	elseif GAMESTATE:GetSmallestNumStagesLeftForAnyHumanPlayer() > 0 then
+		return SelectMusicOrCourse()
+
+	elseif GAMESTATE:CanContinue() then
+		return "ScreenPlayAgain"
+
 	else
-
-		-- deduct the number of stages that stock StepMania says the song is
-		local song = GAMESTATE:GetCurrentSong()
-		local SMSongCost = (song:IsMarathon() and 3) or (song:IsLong() and 2) or 1
-		SL.Global.Stages.Remaining = SL.Global.Stages.Remaining - SMSongCost
-
-		-- check if stages should be "added back" to SL.Global.Stages.Remaining because of an active rate mod
-		if SL.Global.ActiveModifiers.MusicRate ~= 1 then
-			local ActualSongCost = 1
-			local StagesToAddBack = 0
-
-			local Duration = song:GetLastSecond()
-			local DurationWithRate = Duration / SL.Global.ActiveModifiers.MusicRate
-
-			local LongCutoff = PREFSMAN:GetPreference("LongVerSongSeconds")
-			local MarathonCutoff = PREFSMAN:GetPreference("MarathonVerSongSeconds")
-
-			local IsMarathon = (DurationWithRate/MarathonCutoff > 1)
-			local IsLong     = (DurationWithRate/LongCutoff > 1)
-
-			ActualSongCost = (IsMarathon and 3) or (IsLong and 2) or 1
-			StagesToAddBack = SMSongCost - ActualSongCost
-
-			SL.Global.Stages.Remaining = SL.Global.Stages.Remaining + StagesToAddBack
-		end
-
-		-- Now, check if StepMania and SL disagree on the stage count. If necessary, add stages back.
-		-- This might be necessary because:
-		-- a) a Lua chart reloaded ScreenGameplay, or
-		-- b) everyone failed, and StepmMania zeroed out the stage numbers
-		if GAMESTATE:GetNumStagesLeft(GAMESTATE:GetMasterPlayerNumber()) < SL.Global.Stages.Remaining then
-			local StagesToAddBack = math.abs(SL.Global.Stages.Remaining - GAMESTATE:GetNumStagesLeft(GAMESTATE:GetMasterPlayerNumber()))
-			local Players = GAMESTATE:GetHumanPlayers()
-			for pn in ivalues(Players) do
-				for i=1, StagesToAddBack do
-					GAMESTATE:AddStageToPlayer(pn)
-				end
-			end
-		end
-
-		-- now, check if this set is over.
-		local setOver
-		-- This is only true if the set would have been over naturally,
-		setOver = (SL.Global.Stages.Remaining <= 0)
-		-- OR if we allow players to fail a set early and the players actually failed.
-		if ThemePrefs.Get("AllowFailingOutOfSet") == true then
-			setOver = setOver or STATSMAN:GetCurStageStats():AllFailed()
-		end
-		-- this style is more verbose but avoids obnoxious if statements
-
-		if setOver then
-			-- continues are only allowed in Pay/Free modes
-			if PREFSMAN:GetPreference("CoinMode") ~= "CoinMode_Home" then
-				if SL.Global.ContinuesRemaining > 0 and EnoughCreditsToContinue() then
-					return "ScreenPlayAgain"
-				end
-			end
-
-			return Branch.AllowScreenEvalSummary()
-		else
-			return SelectMusicOrCourse()
-		end
+		return Branch.AllowScreenEvalSummary()
 	end
 
 	-- just in case?

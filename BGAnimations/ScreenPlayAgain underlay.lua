@@ -30,36 +30,7 @@ local function input(event)
 			local choice = choice_wheel:get_actor_item_at_focus_pos().info
 			if choice == "Yes" then
 
-				local Players =  GAMESTATE:GetHumanPlayers()
-
-				for pn in ivalues(Players) do
-					for i=1, PREFSMAN:GetPreference("SongsPerPlay") do
-						GAMESTATE:AddStageToPlayer(pn)
-					end
-				end
-				-- If we're in Pay mode, we need to deduct credits accordingly.
-				if PREFSMAN:GetPreference("CoinMode") == "CoinMode_Pay" then
-
-					local coins = PREFSMAN:GetPreference("CoinsPerCredit")
-					local premium = PREFSMAN:GetPreference("Premium")
-					local style = GAMESTATE:GetCurrentStyle():GetName():gsub("8", "")
-
-					if premium == "Premium_DoubleFor1Credit" then
-						if style == "versus" then
-							coins = coins * 2
-						end
-
-					elseif premium == "Premium_Off" then
-						if style == "versus" or style == "double" then
-							coins = coins * 2
-						end
-					end
-
-					GAMESTATE:InsertCoin(-coins)
-				end
-
-				SL.Global.Stages.Remaining = PREFSMAN:GetPreference("SongsPerPlay")
-				SL.Global.ContinuesRemaining = SL.Global.ContinuesRemaining - 1
+				GAMESTATE:UseContinue()
 
 				SL.Global.ScreenAfter.PlayAgain = (SL.Global.GameMode == "Casual" and "ScreenSelectMusicCasual") or "ScreenSelectMusic"
 			else

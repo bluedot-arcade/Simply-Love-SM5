@@ -120,7 +120,6 @@ local GlobalDefaults = {
 			}
 			self.Stages = {
 				PlayedThisGame = 0,
-				Remaining = PREFSMAN:GetPreference("SongsPerPlay"),
 				Stats = {}
 			}
 			self.ScreenAfter = {
@@ -129,7 +128,6 @@ local GlobalDefaults = {
 				PlayerOptions2 = Branch.GameplayScreen(),
 				PlayerOptions3 = Branch.GameplayScreen(),
 			}
-			self.ContinuesRemaining = ThemePrefs.Get("NumberOfContinuesAllowed") or 0
 			self.GameMode = ThemePrefs.Get("DefaultGameMode") or "ITG"
 			self.ScreenshotTexture = nil
 			self.MenuTimer = {
