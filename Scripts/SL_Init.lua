@@ -14,6 +14,7 @@ local PlayerDefaults = {
 				Mini = "0%",
 				BackgroundFilter = "Darker",
 				VisualDelay = "0ms",
+				AudioOffset = "0ms",
 
 				HideTargets = false,
 				HideSongBG = false,
