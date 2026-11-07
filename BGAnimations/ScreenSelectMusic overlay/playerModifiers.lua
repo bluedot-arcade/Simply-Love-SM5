@@ -55,6 +55,7 @@ return Def.Actor{
 				end
 				mods.Mini = ("%g%%"):format(po:Mini()*100)
 				mods.VisualDelay = ("%gms"):format(po:VisualDelay()*1000)
+				mods.AudioOffset = ("%gms"):format(po:AudioOffset()*1000)
 				mods.HideTargets = po:Dark() > 0
 				mods.HideSongBG = po:Cover() > 0
 				mods.NoteSkin, mods.NoteSkinVariant = po:NoteSkin(), nil

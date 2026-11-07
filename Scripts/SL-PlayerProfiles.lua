@@ -24,6 +24,7 @@ local permitted_profile_settings = {
 	NoteFieldOffsetX = "number",
 	NoteFieldOffsetY = "number",
 	VisualDelay      = "string",
+	AudioOffset      = "string",
 
 	----------------------------------
 	-- "Advanced Modifiers"

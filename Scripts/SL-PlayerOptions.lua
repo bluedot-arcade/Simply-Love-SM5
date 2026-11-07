@@ -744,6 +744,27 @@ local Overrides = {
 		end
 	},
 	-------------------------------------------------------------------------
+	AudioOffset = {
+		Choices = function()
+			local first	= -100
+			local last 	= 100
+			local step 	= 1
+			return stringify( range(first, last, step), "%gms")
+		end,
+		ExportOnChange = true,
+		LayoutType = "ShowOneInRow",
+		SaveSelections = function(self, list, pn)
+			local mods, playeroptions = GetModsAndPlayerOptions(pn)
+
+			for i=1,#self.Choices do
+				if list[i] then
+					mods.AudioOffset = self.Choices[i]
+				end
+			end
+			playeroptions:AudioOffset( mods.AudioOffset:gsub("ms","")/1000 )
+		end
+	},
+	-------------------------------------------------------------------------
 	TimingWindowOptions = {
 		SelectType = "SelectMultiple",
 		Values = { "HideEarlyDecentWayOffJudgments", "HideEarlyDecentWayOffFlash" }
